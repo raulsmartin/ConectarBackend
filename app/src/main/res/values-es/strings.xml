@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Conectar Backend</string>
+    <string name="successText">La respuesta es: %1$s</string>
+    <string name="errorText">¡Eso no ha funcionado! ERR: %1$d, Mensaje: %2$s</string>
+</resources>
