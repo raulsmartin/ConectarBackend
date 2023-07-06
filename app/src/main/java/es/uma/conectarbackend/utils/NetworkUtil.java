@@ -12,6 +12,7 @@ import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Collections;
@@ -58,20 +59,82 @@ public class NetworkUtil {
         getRequestQueue().cancelAll(tag);
     }
 
-    public void createLoginRequest(Object tag, TextView output) {
+    public void createLoginRequest(TextView output, Object tag) {
         String url = getURL("login/");
 
         // Request a json response from the provided URL.
-        JsonRequest request = new JsonRequest(Request.Method.POST, url, null,
+        JsonRequest request = new JsonRequest(Request.Method.POST, url, tag, null,
                 response -> {
                     // Display the response string.
                     output.setText(ctx.getString(R.string.successText, response.toString()));
                 },
                 error -> {
                     // Display the error message.
-                    output.setText(ctx.getString(R.string.errorText, error.networkResponse != null ? error.networkResponse.statusCode : 0, error.getMessage()));
+                    output.setText(ctx.getString(R.string.errorText, error.networkResponse != null ? error.networkResponse.statusCode : -1, error.getMessage()));
                 });
-        request.setTag(tag);
+        // Add the request to the RequestQueue.
+        addToRequestQueue(request);
+    }
+
+    public void createGetMeasurementsRequest(TextView output, Object tag) {
+        String url = getURL("medidas/");
+
+        // Request a json response from the provided URL.
+        JsonRequest request = new JsonRequest(Request.Method.GET, url, tag, null,
+                response -> {
+                    // Display the response string.
+                    output.setText(ctx.getString(R.string.successText, response.toString()));
+                },
+                error -> {
+                    // Display the error message.
+                    output.setText(ctx.getString(R.string.errorText, error.networkResponse != null ? error.networkResponse.statusCode : -1, error.getMessage()));
+                });
+        // Add the request to the RequestQueue.
+        addToRequestQueue(request);
+    }
+
+    public void createGetHomesRequest(TextView output, Object tag) {
+        String url = getURL("hogars/");
+
+        // Request a json response from the provided URL.
+        JsonRequest request = new JsonRequest(Request.Method.GET, url, tag, null,
+                response -> {
+                    // Display the response string.
+                    output.setText(ctx.getString(R.string.successText, response.toString()));
+                },
+                error -> {
+                    // Display the error message.
+                    output.setText(ctx.getString(R.string.errorText, error.networkResponse != null ? error.networkResponse.statusCode : -1, error.getMessage()));
+                });
+        // Add the request to the RequestQueue.
+        addToRequestQueue(request);
+    }
+
+    public void createPostInfoRequest(String name, JSONObject home, TextView output, Object tag) {
+        String url = getURL("dispositivos/");
+
+        JSONObject jsonRequest = new JSONObject();
+        try {
+            jsonRequest.put("nombre", name);
+            jsonRequest.put("hogar", home);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Request a json response from the provided URL.
+        JsonRequest request = new JsonRequest(Request.Method.POST, url, tag, jsonRequest,
+                response -> {
+                    // Display the response string.
+                    try {
+                        output.setText(ctx.getString(R.string.successText, response.getString("token")));
+                    } catch (JSONException e) {
+                        output.setText(ctx.getString(R.string.successText, response.toString()));
+                    }
+                },
+                error -> {
+                    // Display the error message.
+                    output.setText(ctx.getString(R.string.errorText, error.networkResponse != null ? error.networkResponse.statusCode : -1, error.getMessage()));
+                });
         // Add the request to the RequestQueue.
         addToRequestQueue(request);
     }
@@ -82,8 +145,9 @@ public class NetworkUtil {
 
     public static class JsonRequest extends JsonObjectRequest {
 
-        public JsonRequest(int method, String url, @Nullable JSONObject jsonRequest, Response.Listener<JSONObject> listener, @Nullable Response.ErrorListener errorListener) {
+        public JsonRequest(int method, String url, @Nullable Object tag, @Nullable JSONObject jsonRequest, Response.Listener<JSONObject> listener, @Nullable Response.ErrorListener errorListener) {
             super(method, url, jsonRequest, listener, errorListener);
+            if (tag != null) setTag(tag);
         }
 
         @Override
@@ -92,7 +156,8 @@ public class NetworkUtil {
             if (headers == null || headers.equals(Collections.emptyMap())) {
                 headers = new HashMap<>();
             }
-            headers.put("Content-Type", "application/json");
+            headers.put("Content-Type", "application/json;charset=UTF-8");
+            headers.put("Accept", "application/json");
             headers.put("Authorization", NetworkUtil.getToken());
             return headers;
         }

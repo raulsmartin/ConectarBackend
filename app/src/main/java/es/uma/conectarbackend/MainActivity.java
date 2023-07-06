@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        NetworkUtil.getInstance(this).createLoginRequest(TAG, findViewById(R.id.text));
+        NetworkUtil.getInstance(this).createLoginRequest(findViewById(R.id.text), TAG);
     }
 
     @Override
